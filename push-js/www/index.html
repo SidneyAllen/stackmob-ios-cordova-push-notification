@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>StackMob Cordova Push Example</title>
+
+  <link rel="stylesheet" href="js/lib/jquerymobile/jquery.mobile-1.3.0.min.css" />
+  <script type="text/javascript" src="js/lib/jquery/jquery.min.js"></script>
+  <script src="js/lib/jquerymobile/jquery.mobile-1.3.0.min.js"></script>
+
+  <script type="text/javascript" src="js/lib/stackmob/stackmob-js-0.9.1-bundled-min.js"></script>
+  <script type="text/javascript" charset="utf-8" src="js/lib/cordova/cordova-2.3.0.js"></script>
+  <script type="text/javascript" src="js/plugins/PushNotification.js"></script>
+    
+  <script type="text/javascript">
+    
+    StackMob.init({
+        publicKey:  "YOUR_PUBLIC_API_KEY_GOES_HERE",
+        apiVersion: 0
+    });
+
+    var app = (function($){
+      return {
+        registerDeviceCustomCode: function(param) {
+          console.log("registering device");
+
+          // Call StackMob custom code
+          StackMob.customcode('push_register_device', // custom code method
+            {device_token: param,
+             token_type: 'ios',
+             user_name: 'sidney123'  // optional - enter a valid username in your User Schema 
+            }, 
+            'GET', // HTTP Verb - omit this parameter for 'GET' by default
+            {
+              success: function(data) {
+                 console.log(data);
+                 alert("Device Registration Success!");
+              },
+                
+              error: function(data) {
+                 console.log(data);
+                 alert("Error: " + data.reason);
+              }
+          });
+        }
+      };
+    })(jQuery);
+
+
+    function onDeviceReady() {
+      console.log("Device Ready");
+      var pushNotification = window.plugins.pushNotification;
+   
+      $('#registerDevice').on('click', function() {
+        pushNotification.registerDevice({alert:true, badge:true, sound:true}, function(status) {
+
+          console.log("Device Token: " + status.deviceToken);
+          app.registerDeviceCustomCode(status.deviceToken);
+        });
+      });
+
+      pushNotification.getPendingNotifications(function(status) {
+        // You can uncomment if needed
+        //alert(JSON.stringify(['pending: ', status]));
+        //navigator.notification.alert(JSON.stringify(['pending notificaions', status]));
+      });
+          
+      pushNotification.getRemoteNotificationStatus(function(status) {
+        // You can uncomment if needed
+        //alert(JSON.stringify(['remote: ', status]));
+      });
+    }
+
+    function init() {
+      console.log("Init Event Listeners");
+      document.addEventListener("deviceready", this.onDeviceReady, false);
+          
+      document.addEventListener('push-notification', function(event) {
+        //uncomment to print out event object
+        //alert("push received");
+        //printObject(event);
+        //printObject(event['notification']['aps']);
+        navigator.notification.alert(event['notification']['aps']['alert']);
+      });
+    }
+
+    function printObject(object) {
+      var output = '';
+      for (property in object) {
+        output += property + ': ' + object[property]+'; ';
+      }
+      alert(output);
+    }
+     
+  </script>
+</head>
+<body onload="init();">
+	<div data-role="page">
+    <div data-role="header">
+      <h1>StackMob Push</h1>
+    </div>
+    <div data-role="content">
+      <a href="#" id="registerDevice" data-role="button">Register Device</a>
+    </div>
+  </div>
+
+</body>
+</html>
